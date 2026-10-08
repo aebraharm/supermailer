@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Build output
+release/
+dist/
+out/
+
+# Test artifacts
+tests/tmp/
+coverage/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment / secrets — NEVER commit
+.env
+.env.*
+*.pem
+*.key
+secrets*.json
+credentials*.json
+
+# Editor
+.vscode/
+.idea/
