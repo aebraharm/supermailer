@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Super Mailer</title>
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+  <!-- Splash / loading screen -->
+  <div id="splash" role="status" aria-live="polite">
+    <div class="logo-wrap" aria-hidden="true">
+      <svg viewBox="0 0 48 48" fill="none">
+        <path d="M6 14.5c0-2.5 2-4.5 4.5-4.5h27c2.5 0 4.5 2 4.5 4.5v19c0 2.5-2 4.5-4.5 4.5h-27C8 38 6 36 6 33.5v-19Z" fill="#ffffff" fill-opacity="0.95"/>
+        <path d="M7.5 15.5 24 27.5l16.5-12" stroke="#1d5fc4" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="38" cy="10" r="6" fill="#5b98f0"/>
+        <path d="m35.2 10 1.9 1.9 3.6-3.6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h1>Super Mailer</h1>
+    <div class="credit">created by aebraharm</div>
+    <div class="loader"><span></span></div>
+    <div class="status" id="splash-status">Starting up…</div>
+  </div>
+
+  <div id="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none">
+            <path d="M6 14.5c0-2.5 2-4.5 4.5-4.5h27c2.5 0 4.5 2 4.5 4.5v19c0 2.5-2 4.5-4.5 4.5h-27C8 38 6 36 6 33.5v-19Z" fill="#fff"/>
+            <path d="M7.5 15.5 24 27.5l16.5-12" stroke="#1549a0" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="name">Super Mailer</div>
+          <div class="by">created by aebraharm</div>
+        </div>
+      </div>
+      <nav class="nav" id="nav">
+        <a href="#/dashboard" data-route="dashboard"><span class="icon" data-icon="dashboard"></span><span class="label">Dashboard</span></a>
+        <a href="#/extract" data-route="extract"><span class="icon" data-icon="upload"></span><span class="label">Extract Emails</span></a>
+        <a href="#/recipients" data-route="recipients"><span class="icon" data-icon="users"></span><span class="label">Recipients</span><span class="badge" id="nav-recipients" hidden></span></a>
+        <a href="#/compose" data-route="compose"><span class="icon" data-icon="pen"></span><span class="label">Create Campaign</span></a>
+        <a href="#/campaign" data-route="campaign"><span class="icon" data-icon="send"></span><span class="label">Live Campaign</span><span class="badge live" id="nav-live" hidden>LIVE</span></a>
+        <a href="#/history" data-route="history"><span class="icon" data-icon="history"></span><span class="label">Campaign History</span></a>
+        <a href="#/settings" data-route="settings"><span class="icon" data-icon="settings"></span><span class="label">Settings</span></a>
+      </nav>
+      <div class="foot">
+        <strong>Super Mailer</strong> for permission-based email only.
+        <br />Created by aebraharm.
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <div class="crumb" id="crumb">Overview</div>
+          <h1 id="page-title">Dashboard</h1>
+        </div>
+        <div class="spacer"></div>
+        <div id="topbar-actions" class="row"></div>
+      </header>
+      <div class="view-wrap" id="view-wrap">
+        <div id="view"></div>
+      </div>
+    </main>
+  </div>
+
+  <div id="toasts" aria-live="polite"></div>
+  <div id="modal-root" role="dialog" aria-modal="true"><div class="scrim"></div><div class="modal" id="modal"></div></div>
+
+  <script src="js/ui.js"></script>
+  <script src="js/views/dashboard.js"></script>
+  <script src="js/views/extract.js"></script>
+  <script src="js/views/recipients.js"></script>
+  <script src="js/views/compose.js"></script>
+  <script src="js/views/campaign.js"></script>
+  <script src="js/views/history.js"></script>
+  <script src="js/views/settings.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

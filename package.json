@@ -1,0 +1,83 @@
+{
+  "name": "supermailer",
+  "productName": "Super Mailer",
+  "version": "1.0.0",
+  "description": "Super Mailer — a modern Windows desktop application for legitimate, permission-based bulk email campaigns. Created by aebraharm.",
+  "main": "src/main/main.js",
+  "author": "aebraharm",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test \"tests/unit/*.test.js\" \"tests/renderer/*.test.js\" \"tests/e2e/*.test.js\"",
+    "test:unit": "node --test \"tests/unit/*.test.js\"",
+    "test:renderer": "node --test \"tests/renderer/*.test.js\"",
+    "test:e2e": "node --test \"tests/e2e/*.test.js\"",
+    "icon": "node scripts/make-icon.js",
+    "dev": "electron . --dev",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win --x64",
+    "dist:linux": "electron-builder --linux AppImage"
+  },
+  "build": {
+    "appId": "com.aebraharm.supermailer",
+    "productName": "Super Mailer",
+    "copyright": "Copyright © 2026 aebraharm",
+    "asar": true,
+    "directories": {
+      "output": "release",
+      "buildResources": "assets"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "artifactName": "Super-Mailer-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Super Mailer",
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "assets/icon.png",
+      "category": "Office"
+    }
+  },
+  "dependencies": {
+    "mammoth": "^1.9.1",
+    "nodemailer": "^6.10.1",
+    "pdfjs-dist": "3.11.174",
+    "xlsx": "0.18.5"
+  },
+  "devDependencies": {
+    "adm-zip": "^0.5.16",
+    "electron": "^33.4.0",
+    "electron-builder": "^25.1.8",
+    "jsdom": "^25.0.1",
+    "pdfkit": "^0.15.2",
+    "smtp-server": "^3.13.6"
+  }
+}
