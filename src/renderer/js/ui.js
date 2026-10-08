@@ -328,9 +328,35 @@
   SM.routes = {};
   SM.currentRoute = null;
 
+  /* Navigation generation counter. Every navigation is given a token; async work
+     belonging to an earlier navigation is stale the moment a newer one starts. */
+  SM.currentNav = 0;
+  /* Token of the navigation that owns the view currently mounted in #view. */
+  SM.mountNav = 0;
+
   SM.route = (name, handler) => {
     SM.routes[name] = handler;
   };
+
+  /**
+   * Start a navigation: drop the previous route's event subscriptions and return
+   * the token identifying this navigation.
+   */
+  SM.beginNav = (name) => {
+    SM.releaseSubs();
+    SM.currentNav += 1;
+    SM.currentRoute = name;
+    return SM.currentNav;
+  };
+
+  /** True when a newer navigation superseded the one holding `token`. */
+  SM.isStaleNav = (token) => token !== SM.currentNav;
+
+  /**
+   * True when `node` belongs to a navigation that is no longer current, so the
+   * caller must not write to the DOM on its behalf.
+   */
+  SM.stale = (node) => !node || !node.isConnected || SM.mountNav !== SM.currentNav;
 
   /** Set the top bar title/crumb and optional actions. */
   SM.setHeader = (title, crumb, actions) => {
@@ -342,7 +368,13 @@
   };
 
   SM.setActiveNav = (name) => {
-    SM.$$('#nav a').forEach((a) => a.classList.toggle('active', a.dataset.route === name));
+    SM.$$('#nav a').forEach((a) => {
+      const on = a.dataset.route === name;
+      a.classList.toggle('active', on);
+      // Expose the selected page to assistive technology as well as visually.
+      if (on) a.setAttribute('aria-current', 'page');
+      else a.removeAttribute('aria-current');
+    });
   };
 
   SM.setBadge = (id, value, live) => {
@@ -356,18 +388,22 @@
     if (live !== undefined) el.classList.toggle('live', !!live);
   };
 
-  /** Mount a view with a smooth transition. */
+  /**
+   * Mount a view. The previous view is removed synchronously, so #view holds
+   * exactly one feature page at any time.
+   *
+   * Removal used to be deferred by a 160ms timer. That left the outgoing page in
+   * the DOM alongside the incoming one, and because only `firstElementChild` was
+   * ever scheduled for removal, a second click inside that window left a stale
+   * page stacked over the selected one permanently.
+   */
   SM.mount = (node) => {
     const view = document.getElementById('view');
     const wrap = document.getElementById('view-wrap');
+    SM.mountNav = SM.currentNav;
+    SM.clear(view);
     const wrapper = h('div.view', node);
-    const old = view.firstElementChild;
-    if (old) {
-      old.classList.add('leaving');
-      setTimeout(() => {
-        if (old.parentNode === view) view.removeChild(old);
-      }, 160);
-    }
+    wrapper.dataset.route = SM.currentRoute || '';
     view.appendChild(wrapper);
     wrap.scrollTop = 0;
     return wrapper;
@@ -378,7 +414,13 @@
    * Subscriptions are released automatically on navigation.
    */
   SM.subs = [];
-  SM.listen = (channel, fn) => {
+  SM.listen = (channel, fn, owner) => {
+    /* Some routes subscribe only after their first await. If the user has already
+       navigated away, that subscription would be registered after the next
+       navigation released the previous ones and would outlive its page, able to
+       mutate global UI (badges, toasts) long afterwards. Callers that subscribe
+       asynchronously pass the node they mounted so this can be detected. */
+    if (owner && SM.stale(owner)) return () => {};
     const off = window.superMailer.on(channel, fn);
     SM.subs.push(off);
     return off;

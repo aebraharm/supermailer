@@ -129,7 +129,14 @@
     const deliverNote = h('div.small.muted', { style: { lineHeight: '1.55' } },
       'Successful sends means your mail server accepted the message. Inbox placement is decided by each recipient’s provider based on sender reputation, authentication (SPF, DKIM, DMARC) and recipient engagement. Super Mailer cannot guarantee inbox placement.');
 
-    root.replaceWith(h('div.view.col', { style: { gap: '22px' } },
+    /* Reuse the node SM.mount created instead of swapping in a new one: this runs
+       after an await, so it must not fire once the user has navigated away, and
+       the mounted node is what carries the navigation's identity. */
+    if (SM.stale(root)) return;
+    root.classList.add('col');
+    root.style.gap = '22px';
+    SM.clear(root);
+    root.append(...[
       hero,
       setupBanner,
       live ? liveCard(live) : null,
@@ -144,6 +151,7 @@
           h('div.card.flat',
             h('div.card-head', h('div', h('div.card-title', 'Recent campaigns'), h('div.sub', 'Latest five campaigns'))),
             recentList(campaigns)))),
-      h('div.card.flat', { style: { background: 'linear-gradient(180deg,#fff,#f5f9ff)' } }, deliverNote)));
+      h('div.card.flat', { style: { background: 'linear-gradient(180deg,#fff,#f5f9ff)' } }, deliverNote)
+    ].filter(Boolean));
   });
 })();

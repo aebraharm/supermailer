@@ -70,7 +70,7 @@
 
   async function refreshPreview() {
     const res = await SM.call(api().compose.preview(draft), { silent: true });
-    if (!res || !res.ok || !refs.frame) return;
+    if (!res || !res.ok || SM.stale(refs.frame)) return;
     const p = res.preview;
     refs.meta.innerHTML = '';
     refs.meta.append(
@@ -255,7 +255,7 @@
       SM.call(api().recipients.stats(), { silent: true })
     ]);
     stats = rec && rec.stats;
-    if (!refs.readyBody) return;
+    if (SM.stale(refs.readyBody)) return;
     SM.clear(refs.readyBody);
     const count = pre && pre.count !== undefined ? pre.count : 0;
     refs.readyBody.append(
@@ -341,9 +341,12 @@
     ]);
     const body = SM.mount(h('div.col', { style: { gap: '20px' } })).firstElementChild;
     const [s, rec] = await Promise.all([SM.call(api().settings.get(), { silent: true }), SM.call(api().recipients.stats(), { silent: true })]);
+    // The user may have navigated away while the composer was loading.
+    if (SM.stale(body)) return;
     settings = s && s.settings;
     stats = rec && rec.stats;
     renderForm = () => {
+      if (SM.stale(body)) return;
       SM.clear(body);
       body.append(
         senderBanner(),
@@ -354,6 +357,7 @@
     };
     renderForm();
     await refreshPreview();
+    if (SM.stale(body)) return;
     await refreshReady();
   });
 
