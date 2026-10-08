@@ -2,6 +2,7 @@
 (function () {
   'use strict';
   const SM = window.SM;
+  const { h, icon } = SM;
   const ROUTES = ['dashboard', 'extract', 'recipients', 'compose', 'campaign', 'history', 'settings'];
   const TITLES = {
     dashboard: 'Dashboard',
@@ -23,16 +24,54 @@
   }
 
   async function navigate() {
-    SM.releaseSubs();
     const { name, param } = parseHash();
-    if (!SM.routes[name]) return;
+    const token = SM.beginNav(name);
+
+    if (!SM.routes[name]) {
+      renderRouteError(name, new Error('Unknown page: ' + name));
+      return;
+    }
+
+    // Highlight immediately — the selected item must not wait for the page to load.
+    SM.setActiveNav(name);
+
     try {
       await SM.routes[name](param);
     } catch (err) {
       console.error(err);
+      if (SM.isStaleNav(token)) return;
       SM.toast('error', 'Could not open this page', 'Please try again. Details were written to the log.');
+      renderRouteError(name, err);
+      return;
     }
-    if (!SM.routes[name] || (location.hash && !location.hash.startsWith('#/' + name))) return;
+
+    /* A newer navigation superseded this one. Its handler may have finished after
+       the user moved on; it must not touch the header, title or view. */
+    if (SM.isStaleNav(token)) return;
+
+    document.getElementById('crumb').dataset.route = name;
+    document.title = 'Super Mailer — ' + (TITLES[name] || '');
+  }
+
+  /**
+   * Replace the main view with an explicit error state. Without this a failed
+   * navigation left the previous (or a half-built) page on screen, so the wrong
+   * page looked selected.
+   */
+  function renderRouteError(name, err) {
+    SM.setActiveNav(name);
+    SM.setHeader(TITLES[name] || 'Super Mailer', 'Error', []);
+    SM.mount(
+      h('div.col', { style: { gap: '18px' } },
+        SM.alert('danger', h('div',
+          h('strong', 'This page could not be opened'),
+          h('div.small', (err && err.message) || 'Unexpected error.'))),
+        SM.emptyState({
+          iconName: 'alert',
+          title: 'Something went wrong on this page',
+          body: 'Nothing was changed and no campaign was started. Your recipients, email draft and campaign are untouched.',
+          action: h('button.btn.primary', { onclick: () => (location.hash = '#/dashboard') }, icon('dashboard'), 'Back to dashboard')
+        })));
     document.getElementById('crumb').dataset.route = name;
     document.title = 'Super Mailer — ' + (TITLES[name] || '');
   }

@@ -170,13 +170,17 @@
   SM.route('campaign', async () => {
     SM.setActiveNav('campaign');
     SM.setHeader('Live Campaign', 'Sending', []);
-    root = SM.mount(h('div.col', { style: { gap: '18px' } })).firstElementChild;
+    const mounted = SM.mount(h('div.col', { style: { gap: '18px' } }));
+    root = mounted.firstElementChild;
     const status = await SM.call(api().campaign.status(), { silent: true });
+    // The user may have navigated away while the status was loading.
+    if (SM.stale(mounted)) return;
     const s = status && status.status;
     if (s) {
       meta = { campaignName: s.campaignName, perMinute: s.perMinute || 30 };
       if (!s.perMinute) {
         const settings = await SM.call(api().settings.get(), { silent: true });
+        if (SM.stale(mounted)) return;
         if (settings && settings.settings) meta.perMinute = settings.settings.sendingRatePerMinute;
       }
     }
@@ -191,27 +195,27 @@
       setLiveBadge(true);
       const st = await SM.call(api().campaign.status(), { silent: true });
       render(st && st.status);
-    });
+    }, mounted);
     SM.listen('campaign:progress', (p) => {
       if (!refs.percent || !root || !root.isConnected) return;
       if (!meta) meta = { campaignName: p.campaignName, perMinute: 30 };
       if (!meta.campaignName && p.campaignName) meta.campaignName = p.campaignName;
       setLiveBadge(p.state === 'running' || p.state === 'paused');
       apply(p);
-    });
+    }, mounted);
     SM.listen('campaign:paused', () => {
       /* state is carried by campaign:progress */
-    });
+    }, mounted);
     SM.listen('campaign:alert', (a) => {
       if (a.kind === 'auth') SM.toast('error', 'Sign-in failed', a.message);
-    });
+    }, mounted);
     SM.listen('campaign:finished', (evt) => {
       lastFinished = evt;
       setLiveBadge(false);
       SM.toast(evt.status === 'completed' ? 'success' : 'info', 'Campaign ' + SM.statusLabel(evt.status).toLowerCase(),
         `${fmt.int(evt.progress.sent)} accepted · ${fmt.int(evt.progress.failed)} failed`);
       render(null);
-    });
+    }, mounted);
   });
 
   function setLiveBadge(live) {
